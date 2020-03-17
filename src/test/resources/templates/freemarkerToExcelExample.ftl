@@ -1,8 +1,16 @@
+<style type="text/css">
+    .default {
+        text-align: center;
+        vertical-align: middle;
+        /*font-weight: bold;*/
+        font-size: 36px;
+    }
+</style>
 <table>
     <caption>${sheetName}</caption>
     <thead>
     <tr style="background-color: #6495ED;height: 300px">
-        <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
+        <th colspan="3" class="default">产品介绍</th>
     </tr>
     <tr>
         <#list titles as title>

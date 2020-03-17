@@ -22,20 +22,23 @@ import com.github.liaochong.myexcel.utils.StyleUtil;
 import com.github.liaochong.myexcel.utils.TdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.CharEncoding;
+import org.fit.cssbox.css.CSSNorm;
+import org.fit.cssbox.css.DOMAnalyzer;
+import org.fit.cssbox.css.NormalOutput;
+import org.fit.cssbox.css.Output;
+import org.fit.cssbox.io.DOMSource;
+import org.fit.cssbox.io.DefaultDOMSource;
+import org.fit.cssbox.io.DefaultDocumentSource;
+import org.fit.cssbox.io.DocumentSource;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.*;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -85,16 +88,75 @@ public class HtmlTableParser {
      * @return 所有表格
      * @throws IOException IOException
      */
-    public List<Table> getAllTable(ParseConfig parseConfig) throws IOException {
+    public List<Table> getAllTable(ParseConfig parseConfig) throws IOException, SAXException {
         log.info("Start parsing html file");
         long startTime = System.currentTimeMillis();
-        Document document;
+        final Document document;
+        final String style = "style";
         if (htmlFile != null) {
             document = Jsoup.parse(htmlFile, CharEncoding.UTF_8);
         } else {
-            document = Jsoup.parse(html, CharEncoding.UTF_8);
+            FileOutputStream outputStream = new FileOutputStream("html");
+            byte[] strToBytes = html.getBytes();
+            outputStream.write(strToBytes);
+
+            URL url = new File("html").toURI().toURL();
+
+            //Open the network connection
+            DocumentSource docSource = new DefaultDocumentSource(url);
+            //Parse the input document
+            DOMSource parser = new DefaultDOMSource(docSource);
+            org.w3c.dom.Document doc = parser.parse();
+
+            //Create the CSS analyzer
+            DOMAnalyzer da = new DOMAnalyzer(doc, docSource.getURL());
+            da.attributesToStyles(); //convert the HTML presentation attributes to inline styles
+            da.addStyleSheet(null, CSSNorm.stdStyleSheet(), DOMAnalyzer.Origin.AGENT); //use the standard style sheet
+            da.addStyleSheet(null, CSSNorm.userStyleSheet(), DOMAnalyzer.Origin.AGENT); //use the additional style sheet
+            da.getStyleSheets(); //load the author style sheets
+
+            //Compute the styles
+            System.err.println("Computing style...");
+            da.stylesToDomInherited();
+            StringWriter stringWriter = new StringWriter();
+            Output out = new NormalOutput(doc);
+            PrintWriter writer = new PrintWriter(stringWriter);
+            out.dumpTo(writer);
+            String finalHtml = stringWriter.toString();
+            writer.close();
+            docSource.close();
+
+            document = Jsoup.parse(finalHtml, CharEncoding.UTF_8);
+
+
+//            document = Jsoup.parse(html, CharEncoding.UTF_8);
         }
+
+
+
+
         document.outputSettings(new Document.OutputSettings().prettyPrint(false));
+
+//        Elements els = document.select(style);// to get all the style elements
+//        for (Element e : els) {
+//            String styleRules = e.getAllElements().get(0).data().replaceAll("\n", "").trim();
+//            String delims = "{}";
+//            StringTokenizer st = new StringTokenizer(styleRules, delims);
+//            while (st.countTokens() > 1) {
+//                String selector = st.nextToken(), properties = st.nextToken();
+//                if (!selector.contains(":")) { // skip a:hover rules, etc.
+//                    Elements selectedElements = document.select(selector);
+//                    for (Element selElem : selectedElements) {
+//                        String oldProperties = selElem.attr(style);
+//                        selElem.attr(style,
+//                                oldProperties.length() > 0 ? concatenateProperties(
+//                                        oldProperties, properties) : properties);
+//                    }
+//                }
+//            }
+//            e.remove();
+//        }
+
         //select all <br> tags and append \n after that
         document.select("br").after("\\n");
         //select all <p> tags and prepend \n before that
@@ -104,6 +166,7 @@ public class HtmlTableParser {
         List<Table> result = tableElements.stream().map(tableElement -> {
             Table table = new Table();
             Elements captionElements = tableElement.getElementsByTag(TableTag.caption.name());
+
             if (!captionElements.isEmpty()) {
                 table.setCaption(captionElements.first().text());
             }
@@ -112,6 +175,13 @@ public class HtmlTableParser {
         }).collect(Collectors.toList());
         log.info("Complete html file parsing,takes {} ms", System.currentTimeMillis() - startTime);
         return result;
+    }
+
+    private static String concatenateProperties(String oldProp, String newProp) {
+        oldProp = oldProp.trim();
+        if (!oldProp.endsWith(";"))
+            oldProp += ";";
+        return oldProp + newProp.replaceAll("\\s{2,}", " ");
     }
 
     /**

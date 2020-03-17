@@ -102,7 +102,7 @@ abstract class AbstractReadHandler<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
+//    @SuppressWarnings("unchecked")
     private void setNewInstanceFunction(Class<T> dataType, boolean isMapType) {
         if (isMapType) {
             newInstance = () -> (T) new LinkedHashMap<Cell, String>();
@@ -135,7 +135,7 @@ abstract class AbstractReadHandler<T> {
         });
     }
 
-    @SuppressWarnings("unchecked")
+//    @SuppressWarnings("unchecked")
     private void setFieldHandlerFunction(boolean isMapType) {
         if (isMapType) {
             fieldHandler = (colNum, content) -> ((Map<Cell, String>) obj).put(new Cell(currentRow.getRowNum(), colNum), content);

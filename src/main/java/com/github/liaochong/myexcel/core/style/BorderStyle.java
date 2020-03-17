@@ -17,8 +17,8 @@ package com.github.liaochong.myexcel.core.style;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -48,22 +48,13 @@ public final class BorderStyle {
         if (tdStyle == null) {
             return;
         }
-        String borderLeftStyle = tdStyle.get(BORDER_LEFT_STYLE);
-        if (borderStyleMap.containsKey(borderLeftStyle)) {
-            cellStyle.setBorderLeft(borderStyleMap.get(borderLeftStyle));
-        }
-        String borderRightStyle = tdStyle.get(BORDER_RIGHT_STYLE);
-        if (borderStyleMap.containsKey(borderRightStyle)) {
-            cellStyle.setBorderRight(borderStyleMap.get(borderRightStyle));
-        }
-        String borderTopStyle = tdStyle.get(BORDER_TOP_STYLE);
-        if (borderStyleMap.containsKey(borderTopStyle)) {
-            cellStyle.setBorderTop(borderStyleMap.get(borderTopStyle));
-        }
-        String borderBottomStyle = tdStyle.get(BORDER_BOTTOM_STYLE);
-        if (borderStyleMap.containsKey(borderBottomStyle)) {
-            cellStyle.setBorderBottom(borderStyleMap.get(borderBottomStyle));
-        }
+
+        Map<String, Style> supportedStyles = Arrays.stream(Style.values())
+                .collect(Collectors.toMap(Style::getCssStyle, Function.identity()));
+
+        tdStyle.keySet().stream().
+                map(supportedStyles::get).filter(Objects::nonNull).
+                forEach(st -> st.apply(cellStyle, borderStyleMap.get(st.getCssStyle())));
     }
 
 

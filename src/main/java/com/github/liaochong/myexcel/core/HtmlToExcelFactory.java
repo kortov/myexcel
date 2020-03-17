@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
@@ -129,7 +130,7 @@ public class HtmlToExcelFactory extends AbstractExcelFactory {
             List<Table> tables = htmlTableParser.getAllTable(parseConfig);
             htmlTableParser = null;
             return this.build(tables);
-        } catch (IOException e) {
+        } catch (IOException | SAXException e) {
             throw new RuntimeException(e);
         }
     }
