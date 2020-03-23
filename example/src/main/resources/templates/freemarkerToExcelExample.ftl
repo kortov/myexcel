@@ -5,9 +5,9 @@
         <th colspan="3" style="text-align: center;vertical-align: middle;font-weight: bold;font-size: 14px;">产品介绍</th>
     </tr>
     <tr>
-        <#list titles as title>
-            <th>${title}</th>
-        </#list>
+            <th style="width: 1pt">Category</th>
+            <th style="width: 1pt">Product Name</th>
+            <th style="width: 1pt">Count</th>
     </tr>
     </thead>
     <tbody>

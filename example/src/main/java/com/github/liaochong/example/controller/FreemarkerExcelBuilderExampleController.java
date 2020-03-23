@@ -5,6 +5,7 @@ import com.github.liaochong.myexcel.core.ExcelBuilder;
 import com.github.liaochong.myexcel.core.FreemarkerExcelBuilder;
 import com.github.liaochong.myexcel.core.WorkbookType;
 import com.github.liaochong.myexcel.core.strategy.AutoWidthStrategy;
+import com.github.liaochong.myexcel.core.strategy.WidthStrategy;
 import com.github.liaochong.myexcel.utils.AttachmentExportUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -144,9 +145,8 @@ public class FreemarkerExcelBuilderExampleController {
             Map<String, Object> dataMap = this.getDataMap();
 
             Workbook workbook = excelBuilder
-                    .template("/templates/freemarkerToExcelExample.ftl")
-                    .useDefaultStyle()
-                    .autoWidthStrategy(AutoWidthStrategy.AUTO_WIDTH)
+                    .classpathTemplate("/templates/freemarkerToExcelExample.ftl")
+                    .widthStrategy(WidthStrategy.COMPUTE_AUTO_WIDTH)
                     .build(dataMap);
             AttachmentExportUtil.export(workbook, "freemarker_excel", response);
         }
@@ -156,22 +156,16 @@ public class FreemarkerExcelBuilderExampleController {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("sheetName", "freemarker_excel_example");
 
-        List<String> titles = new ArrayList<>();
-        titles.add("Category");
-        titles.add("Product Name");
-        titles.add("Count");
-        dataMap.put("titles", titles);
-
         List<Product> data = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Product product = new Product();
             if (i % 2 == 0) {
-                product.setCategory("蔬菜");
+                product.setCategory("saaaaamplllllllllleeeeeeee");
                 product.setName("小白菜");
                 product.setCount(100);
             } else {
                 product.setCategory("电子产品");
-                product.setName("ipad");
+                product.setName("sample");
                 product.setCount(999);
             }
             data.add(product);
